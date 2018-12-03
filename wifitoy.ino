@@ -24,16 +24,16 @@ const char* ssidsAeiou PROGMEM = {
   "00 John Madden\n"
   "01 John Madden\n"
   "02 John Madden\n"
-  "03 999999999999999999999999999999\n"
+  "03 999999999999999999999999999\n"
   "04 uuuuuuuuuuuuuuuuuuuuu\n"
   "05 ?!?!?!?!?!?!?!?!\n"
   "06 John Madden!\n"
   "07 football\n"
   "08 aeiou\n"
   "09 aeiou\n"
-  "10 aeiouaeiouaeiouaeiouaeiouaeiou\n"
+  "10 aeiouaeiouaeiouaeiouaeiou\n"
   "11 uuuuuuuuu99999999uuuuuuu\n"
-  "12 snake? Snake! SNAAAAAAKKKKEEEEE\n"
+  "12 snake? Snake! SNAAAAAAKKEEEE\n"
 };
 
 const char* ssidsAllstar PROGMEM = {
@@ -99,6 +99,7 @@ MENU(beaconMenu, "BeaconSpam", Menu::doNothing, Menu::noEvent, Menu::wrapStyle
 int brightness=50;
 MENU(mainMenu, "WiFiToy", Menu::doNothing, Menu::noEvent, Menu::wrapStyle
   ,SUBMENU(beaconMenu)
+  ,OP("Deauther", Menu::doNothing, Menu::noEvent)
   ,OP("PacketGraph", Menu::doNothing, Menu::noEvent)
   ,FIELD(brightness,"Backlight","%",0,100,10,1,Menu::doNothing, Menu::noEvent, Menu::noStyle)
 );
