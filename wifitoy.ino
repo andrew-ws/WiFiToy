@@ -7,6 +7,7 @@
 #include <menuIO/serialOut.h>
 #include "Adafruit_miniTFTWing.h"
 #include "Beacon.h"
+#include "PacketMonitor.h"
 #include "ProgmemConsts.h"
 
 // Basic I/O
@@ -32,9 +33,11 @@ const colorDef<uint16_t> colors[] MEMMODE={
 
 Beacon *runningBeacon;
 std::function<void()> screenFn;
+PacketMonitor *packetMonitor;
 
 result allstarBeacon(eventMask e, prompt &item);
 result aeiouBeacon(eventMask e, prompt &item);
+result doPacketMonitor(eventMask e, prompt &item);
 
 MENU(beaconMenu, "BeaconSpam", Menu::doNothing, Menu::noEvent, Menu::wrapStyle
   ,OP("All Star", allstarBeacon, Menu::enterEvent)
@@ -43,10 +46,10 @@ MENU(beaconMenu, "BeaconSpam", Menu::doNothing, Menu::noEvent, Menu::wrapStyle
 
 int brightness=50;
 MENU(mainMenu, "WiFiToy", Menu::doNothing, Menu::noEvent, Menu::wrapStyle
-  ,SUBMENU(beaconMenu)
-  ,OP("Deauther", Menu::doNothing, Menu::noEvent)
-  ,OP("PacketGraph", Menu::doNothing, Menu::noEvent)
   ,FIELD(brightness,"Backlight","%",0,100,10,1,Menu::doNothing, Menu::noEvent, Menu::noStyle)
+  ,SUBMENU(beaconMenu)
+  ,OP("PacketGraph", doPacketMonitor, Menu::enterEvent)
+  ,OP("Deauther", Menu::doNothing, Menu::noEvent)
 );
 
 chainStream<0> in(NULL);
@@ -74,6 +77,23 @@ result beaconLooper(menuOut& o, idleEvent e) {
   return proceed;
 }
 
+result monitorLooper(menuOut& o, idleEvent e) {
+  switch(e) {
+    case idleStart:
+      packetMonitor->setupMonitor();
+      break;
+    case idling:
+      packetMonitor->step();
+      nav.idleChanged = true;
+      break;
+    case idleEnd:
+      packetMonitor->teardownMonitor();
+      gfx.setTextSize(textScale);
+      break;
+  }
+  return proceed;
+}
+
 result allstarBeacon(eventMask e, prompt &item) {
   screenFn = screenAllstar;
   runningBeacon = new Beacon(ssidsAllstar);
@@ -85,6 +105,12 @@ result aeiouBeacon(eventMask e, prompt &item) {
   screenFn = screenAeiou;
   runningBeacon = new Beacon(ssidsAeiou);
   nav.idleOn(beaconLooper);
+  return proceed;
+}
+
+result doPacketMonitor(eventMask e, prompt &item) {
+  packetMonitor = new PacketMonitor(&gfx);
+  nav.idleOn(monitorLooper);
   return proceed;
 }
 
